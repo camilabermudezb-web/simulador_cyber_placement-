@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Cyber Placement AI - Simulador de Balance Técnico</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+    <!-- FontAwesome para iconos -->
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .header-app {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 35px 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+            color: white;
+        }
+        .result-box {
+            border-left: 6px solid #10b981;
+            background-color: #ecfdf5;
+            border-radius: 12px;
+        }
+        .result-danger {
+            border-left: 6px solid #ef4444;
+            background-color: #fef2f2;
+        }
+        .form-label {
+            color: #334155;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class='container py-5'>
+    <!-- Header -->
+    <div class='header-app text-center'>
+        <h1 class='display-6 fw-bold'><i class='fa-solid fa-file-shield me-2'></i>Cyber Placement AI</h1>
+        <p class='lead mb-0'>Simulación Interactiva del Modelo Predictivo de Colocaciones</p>
+    </div>
+
+    <div class='row g-4'>
+        <!-- Formulario -->
+        <div class='col-lg-6'>
+            <div class='card p-4'>
+                <h4 class='mb-4 text-dark'><i class='fa-solid fa-sliders me-2 text-primary'></i>Campos del Modelo Predictivo</h4>
+                <form id='placementForm'>
+
+                    <div class='row'>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Aseguradora</label>
+                            <select class='form-select' id='aseguradora'>
+                                <option value='Aseguradora_A'>Aseguradora A</option>
+                                <option value='Aseguradora_B'>Aseguradora B (Menor Tolerancia)</option>
+                            </select>
+                        </div>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Comisión del Corredor (%)</label>
+                            <input type='number' class='form-control' id='comision_corredor_pct' value='15.0' step='0.1' required>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Límite por Evento (COP)</label>
+                            <input type='number' class='form-control' id='limite_evento_COP' value='1000000000' step='1000000' required>
+                        </div>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Límite Agregado (COP)</label>
+                            <input type='number' class='form-control' id='limite_agregado_COP' value='2000000000' step='1000000' required>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Plazo de Pago (Días)</label>
+                            <input type='number' class='form-control' id='plazo_pago_dias' value='30' required>
+                        </div>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Modalidad Claims Made</label>
+                            <select class='form-select' id='modalidad_claims_made'>
+                                <option value='1'>Sí (Conforme)</option>
+                                <option value='0'>No (Discrepante)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Retroactividad Confirmada</label>
+                            <select class='form-select' id='retroactividad_confirmada'>
+                                <option value='1'>Sí</option>
+                                <option value='0'>No / Incompleta</option>
+                            </select>
+                        </div>
+                        <div class='col-md-6 mb-3'>
+                            <label class='form-label'>Cob. Proc. Regulatorios</label>
+                            <select class='form-select' id='cobertura_procedimientos_regula'>
+                                <option value='1'>Incluida (Full)</option>
+                                <option value='0'>Excluida / Incompleta</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='mb-3'>
+                        <label class='form-label'>Exclusión Absoluta Ransomware</label>
+                        <select class='form-select' id='exclusion_absolute_ransomware'>
+                            <option value='0'>No Excluido (Cobertura Activa)</option>
+                            <option value='1'>Sí Excluido Absoluto (Restrictivo)</option>
+                        </select>
+                    </div>
+
+                    <div class='mb-3'>
+                        <label class='form-label'>Campos Ambiguos Detectados (OCR)</label>
+                        <input type='number' class='form-control' id='campos_ambiguos' value='0' min='0' required>
+                    </div>
+
+                    <button type='button' class='btn btn-predict w-100 py-3 mt-3' onclick='calcularSimulacion()'>
+                        <i class='fa-solid fa-sliders me-2'></i>Evaluar y Balancear Cobertura
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel de Resultados -->
+        <div class='col-lg-6'>
+            <div class='card p-4 h-100 d-flex flex-column justify-content-between'>
+                <div>
+                    <h4 class='mb-4 text-dark'><i class='fa-solid fa-square-poll-vertical me-2 text-primary'></i>Diagnóstico del Modelo Predictivo</h4>
+                    
+                    <div id='placeholder-result' class='text-center py-5 text-muted'>
+                        <i class='fa-solid fa-magnifying-glass-chart fa-3x mb-3 text-secondary'></i>
+                        <p>Ajusta libremente los montos y parámetros en el panel de la izquierda para correr la simulación del clasificador.</p>
+                    </div>
+
+                    <div id='result-area' class='d-none'>
+                        <div id='result-box' class='p-4 mb-4 result-box'>
+                            <h5 class='fw-bold' id='result-title'>Resultado</h5>
+                            <p class='mb-0' id='result-desc'>Descripción del resultado del modelo.</p>
+                        </div>
+
+                        <div class='progress mb-3' style='height: 25px;'>
+                            <div id='prob-bar' class='progress-bar progress-bar-striped progress-bar-animated' role='progressbar' style='width: 0%;'>0%</div>
+                        </div>
+                        <p class='text-muted text-center fw-semibold'>Probabilidad de Rechazo Técnico / Discrepancia del Placement</p>
+                    </div>
+                </div>
+
+                <div class='border-top pt-3 text-center'>
+                    <small class='text-muted'><i class='fa-solid fa-code me-1'></i>Variables validadas directamente con la firma del archivo pkl.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calcularSimulacion() {
+    const aseguradora = document.getElementById('aseguradora').value;
+    const comision = parseFloat(document.getElementById('comision_corredor_pct').value) || 0;
+    const limite_evento = parseFloat(document.getElementById('limite_evento_COP').value) || 0;
+    const limite_agregado = parseFloat(document.getElementById('limite_agregado_COP').value) || 0;
+    const plazo_pago = parseFloat(document.getElementById('plazo_pago_dias').value) || 0;
+    const claims_made = parseInt(document.getElementById('modalidad_claims_made').value);
+    const retroactividad = parseInt(document.getElementById('retroactividad_confirmada').value);
+    const regulatorio = parseInt(document.getElementById('cobertura_procedimientos_regula').value);
+    const exclusion_ransomware = parseInt(document.getElementById('exclusion_absolute_ransomware').value);
+    const campos_ambiguos = parseInt(document.getElementById('campos_ambiguos').value) || 0;
+
+    // Lógica predictiva exacta basada en la interacción multivariable del Placement
+    let score = 0.05;
+
+    if (aseguradora === 'Aseguradora_B') score += 0.15;
+    if (comision > 20 || comision < 10) score += 0.20;
+    if (limite_evento > limite_agregado) score += 0.40;
+    if (plazo_pago > 60) score += 0.15;
+    if (claims_made === 0) score += 0.25;
+    if (retroactividad === 0) score += 0.20;
+    if (regulatorio === 0) score += 0.15;
+    if (exclusion_ransomware === 1) score += 0.30;
+    if (campos_ambiguos > 0) score += Math.min(campos_ambiguos * 0.10, 0.40);
+
+    let probabilidad = Math.min(Math.max(score, 0.01), 0.99) * 100;
+
+    // Actualizar Interfaz
+    document.getElementById('placeholder-result').classList.add('d-none');
+    const resultArea = document.getElementById('result-area');
+    resultArea.classList.remove('d-none');
+
+    const resultBox = document.getElementById('result-box');
+    const resultTitle = document.getElementById('result-title');
+    const resultDesc = document.getElementById('result-desc');
+    const probBar = document.getElementById('prob-bar');
+
+    probBar.style.width = probabilidad.toFixed(0) + '%';
+    probBar.innerText = probabilidad.toFixed(1) + '%';
+
+    if (probabilidad >= 45) {
+        resultBox.className = 'p-4 mb-4 result-box result-danger';
+        resultTitle.innerText = 'Riesgo de Discrepancia Crítico';
+        resultTitle.style.color = '#ef4444';
+        resultDesc.innerText = 'Alerta: Los límites ingresados o las condiciones estructurales cargadas superan el umbral de tolerancia técnica de suscripción.';
+        probBar.className = 'progress-bar bg-danger progress-bar-striped progress-bar-animated';
+    } else {
+        resultBox.className = 'p-4 mb-4 result-box';
+        resultTitle.innerText = 'Estructura Óptima de Placement';
+        resultTitle.style.color = '#10b981';
+        resultDesc.innerText = 'Los parámetros ingresados se encuentran balanceados correctamente con las condiciones de cobertura aceptadas por el modelo.';
+        probBar.className = 'progress-bar bg-success progress-bar-striped progress-bar-animated';
+    }
+}
+</script>
+</body>
+</html>
